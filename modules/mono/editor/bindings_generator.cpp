@@ -1559,6 +1559,9 @@ Error BindingsGenerator::_populate_method_icalls_table(const TypeInterface &p_it
 			if (p_itype.api_type != ClassDB::API_EDITOR) {
 				match->get().editor_only = false;
 			}
+			if (p_itype.api_type != ClassDB::API_EXTENSION) {
+				match->get().extension_only = false;
+			}
 			method_icalls_map.insert(&imethod, &match->get());
 		} else {
 			List<InternalCall>::Element *added = method_icalls.push_back(im_icall);
@@ -2200,45 +2203,45 @@ Error BindingsGenerator::generate_cs_extension_project(const String &p_proj_dir)
 
 	// Generate native calls
 
-	// StringBuilder cs_icalls_content;
+	StringBuilder cs_icalls_content;
 
-	// cs_icalls_content.append("namespace " BINDINGS_NAMESPACE ";\n\n");
-	// cs_icalls_content.append("using System;\n"
-	// 						 "using System.Diagnostics.CodeAnalysis;\n"
-	// 						 "using System.Runtime.InteropServices;\n"
-	// 						 "using Godot.NativeInterop;\n"
-	// 						 "\n");
-	// cs_icalls_content.append("[SuppressMessage(\"ReSharper\", \"InconsistentNaming\")]\n");
-	// cs_icalls_content.append("[SuppressMessage(\"ReSharper\", \"RedundantUnsafeContext\")]\n");
-	// cs_icalls_content.append("[SuppressMessage(\"ReSharper\", \"RedundantNameQualifier\")]\n");
-	// cs_icalls_content.append("[System.Runtime.CompilerServices.SkipLocalsInit]\n");
-	// cs_icalls_content.append("internal static class " BINDINGS_CLASS_NATIVECALLS_EXTENSION "\n{");
+	cs_icalls_content.append("namespace " BINDINGS_NAMESPACE ";\n\n");
+	cs_icalls_content.append("using System;\n"
+							 "using System.Diagnostics.CodeAnalysis;\n"
+							 "using System.Runtime.InteropServices;\n"
+							 "using Godot.NativeInterop;\n"
+							 "\n");
+	cs_icalls_content.append("[SuppressMessage(\"ReSharper\", \"InconsistentNaming\")]\n");
+	cs_icalls_content.append("[SuppressMessage(\"ReSharper\", \"RedundantUnsafeContext\")]\n");
+	cs_icalls_content.append("[SuppressMessage(\"ReSharper\", \"RedundantNameQualifier\")]\n");
+	cs_icalls_content.append("[System.Runtime.CompilerServices.SkipLocalsInit]\n");
+	cs_icalls_content.append("internal static class " BINDINGS_CLASS_NATIVECALLS_EXTENSION "\n{");
 
-	// cs_icalls_content.append(MEMBER_BEGIN "internal static ulong godot_api_hash = ");
-	// cs_icalls_content.append(String::num_uint64(ClassDB::get_api_hash(ClassDB::API_CORE)) + ";\n");
+	cs_icalls_content.append(MEMBER_BEGIN "internal static ulong godot_api_hash = ");
+	cs_icalls_content.append(String::num_uint64(ClassDB::get_api_hash(ClassDB::API_CORE)) + ";\n");
 
-	// cs_icalls_content.append(MEMBER_BEGIN "private const int VarArgsSpanThreshold = 10;\n");
+	cs_icalls_content.append(MEMBER_BEGIN "private const int VarArgsSpanThreshold = 10;\n");
 
-	// for (const InternalCall &icall : method_icalls) {
-	// 	if (icall.editor_only || !icall.extension_only) {
-	// 		continue;
-	// 	}
-	// 	Error err = _generate_cs_native_calls(icall, cs_icalls_content);
-	// 	if (err != OK) {
-	// 		return err;
-	// 	}
-	// }
+	for (const InternalCall &icall : method_icalls) {
+		if (icall.editor_only || !icall.extension_only) {
+			continue;
+		}
+		Error err = _generate_cs_native_calls(icall, cs_icalls_content);
+		if (err != OK) {
+			return err;
+		}
+	}
 
-	// cs_icalls_content.append(CLOSE_BLOCK);
+	cs_icalls_content.append(CLOSE_BLOCK);
 
-	// String internal_methods_file = Path::join(base_gen_dir, BINDINGS_CLASS_NATIVECALLS_EXTENSION ".cs");
+	String internal_methods_file = Path::join(base_gen_dir, BINDINGS_CLASS_NATIVECALLS_EXTENSION ".cs");
 
-	// Error err = _save_file(internal_methods_file, cs_icalls_content);
-	// if (err != OK) {
-	// 	return err;
-	// }
+	Error err = _save_file(internal_methods_file, cs_icalls_content);
+	if (err != OK) {
+		return err;
+	}
 
-	// compile_items.push_back(internal_methods_file);
+	compile_items.push_back(internal_methods_file);
 
 	// Generate GeneratedIncludes.props
 
@@ -2256,7 +2259,7 @@ Error BindingsGenerator::generate_cs_extension_project(const String &p_proj_dir)
 
 	String includes_props_file = Path::join(base_gen_dir, "GeneratedIncludes.props");
 
-	Error err = _save_file(includes_props_file, includes_props_content);
+	err = _save_file(includes_props_file, includes_props_content);
 	if (err != OK) {
 		return err;
 	}
@@ -3325,7 +3328,7 @@ Error BindingsGenerator::_generate_cs_method(const BindingsGenerator::TypeInterf
 
 		const InternalCall *im_icall = match->value;
 
-		String im_call = im_icall->editor_only ? BINDINGS_CLASS_NATIVECALLS_EDITOR : BINDINGS_CLASS_NATIVECALLS;
+		String im_call = im_icall->editor_only ? BINDINGS_CLASS_NATIVECALLS_EDITOR : im_icall->extension_only ? BINDINGS_CLASS_NATIVECALLS_EXTENSION : BINDINGS_CLASS_NATIVECALLS;
 		im_call += ".";
 		im_call += im_icall->name;
 

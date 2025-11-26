@@ -624,6 +624,7 @@ class BindingsGenerator {
 		String name;
 		String unique_sig; // Unique signature to avoid duplicates in containers
 		bool editor_only = false;
+		bool extension_only = false;
 
 		bool is_vararg = false;
 		bool is_static = false;
@@ -638,6 +639,7 @@ class BindingsGenerator {
 			name = p_name;
 			unique_sig = p_unique_sig;
 			editor_only = api_type == ClassDB::API_EDITOR;
+			extension_only = api_type == ClassDB::API_EXTENSION;
 		}
 
 		inline bool operator==(const InternalCall &p_a) const {
@@ -858,6 +860,7 @@ class BindingsGenerator {
 public:
 	Error generate_cs_core_project(const String &p_proj_dir);
 	Error generate_cs_editor_project(const String &p_proj_dir);
+	Error generate_cs_extension_project(const String &p_proj_dir);
 	Error generate_cs_api(const String &p_output_dir);
 
 	_FORCE_INLINE_ bool is_log_print_enabled() { return log_print_enabled; }

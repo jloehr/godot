@@ -42,3 +42,4 @@
 
 #define BINDINGS_CLASS_NATIVECALLS "NativeCalls"
 #define BINDINGS_CLASS_NATIVECALLS_EDITOR "EditorNativeCalls"
+#define BINDINGS_CLASS_NATIVECALLS_EXTENSION "ExtensionNativeCalls"
