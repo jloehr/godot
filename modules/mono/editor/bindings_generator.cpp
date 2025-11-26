@@ -2094,6 +2094,176 @@ Error BindingsGenerator::generate_cs_editor_project(const String &p_proj_dir) {
 	return OK;
 }
 
+Error BindingsGenerator::generate_cs_extension_project(const String &p_proj_dir) {
+	ERR_FAIL_COND_V(!initialized, ERR_UNCONFIGURED);
+
+	Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
+	ERR_FAIL_COND_V(da.is_null(), ERR_CANT_CREATE);
+
+	if (!DirAccess::exists(p_proj_dir)) {
+		Error err = da->make_dir_recursive(p_proj_dir);
+		ERR_FAIL_COND_V_MSG(err != OK, ERR_CANT_CREATE, "Cannot create directory '" + p_proj_dir + "'.");
+	}
+
+	da->change_dir(p_proj_dir);
+	da->make_dir("Generated");
+	da->make_dir("Generated/GodotObjects");
+
+	String base_gen_dir = Path::join(p_proj_dir, "Generated");
+	String godot_objects_gen_dir = Path::join(base_gen_dir, "GodotObjects");
+
+	Vector<String> compile_items;
+
+	for (const KeyValue<StringName, TypeInterface> &E : obj_types) {
+		const TypeInterface &itype = E.value;
+
+		if (itype.api_type != ClassDB::API_EXTENSION) {
+			continue;
+		}
+
+		String output_file = Path::join(godot_objects_gen_dir, itype.proxy_name + ".cs");
+		Error err = _generate_cs_type(itype, output_file);
+
+		if (err == ERR_SKIP) {
+			continue;
+		}
+
+		if (err != OK) {
+			return err;
+		}
+
+		compile_items.push_back(output_file);
+	}
+
+	// // Generate source file for built-in type constructor dictionary.
+
+	// {
+	// 	StringBuilder cs_built_in_ctors_content;
+
+	// 	cs_built_in_ctors_content.append("namespace " BINDINGS_NAMESPACE ";\n\n");
+	// 	cs_built_in_ctors_content.append("using System;\n"
+	// 									 "using System.Collections.Generic;\n"
+	// 									 "\n");
+	// 	cs_built_in_ctors_content.append("internal static class " BINDINGS_CLASS_CONSTRUCTOR "\n{");
+
+	// 	cs_built_in_ctors_content.append(MEMBER_BEGIN "internal static readonly Dictionary<string, Func<IntPtr, GodotObject>> " BINDINGS_CLASS_CONSTRUCTOR_DICTIONARY ";\n");
+
+	// 	cs_built_in_ctors_content.append(MEMBER_BEGIN "public static GodotObject Invoke(string nativeTypeNameStr, IntPtr nativeObjectPtr)\n");
+	// 	cs_built_in_ctors_content.append(INDENT1 OPEN_BLOCK);
+	// 	cs_built_in_ctors_content.append(INDENT2 "if (!" BINDINGS_CLASS_CONSTRUCTOR_DICTIONARY ".TryGetValue(nativeTypeNameStr, out var constructor))\n");
+	// 	cs_built_in_ctors_content.append(INDENT3 "throw new InvalidOperationException(\"Wrapper class not found for type: \" + nativeTypeNameStr);\n");
+	// 	cs_built_in_ctors_content.append(INDENT2 "return constructor(nativeObjectPtr);\n");
+	// 	cs_built_in_ctors_content.append(INDENT1 CLOSE_BLOCK);
+
+	// 	cs_built_in_ctors_content.append(MEMBER_BEGIN "static " BINDINGS_CLASS_CONSTRUCTOR "()\n");
+	// 	cs_built_in_ctors_content.append(INDENT1 OPEN_BLOCK);
+	// 	cs_built_in_ctors_content.append(INDENT2 BINDINGS_CLASS_CONSTRUCTOR_DICTIONARY " = new();\n");
+
+	// 	for (const KeyValue<StringName, TypeInterface> &E : obj_types) {
+	// 		const TypeInterface &itype = E.value;
+
+	// 		if (itype.api_type != ClassDB::API_CORE || itype.is_singleton_instance) {
+	// 			continue;
+	// 		}
+
+	// 		if (itype.is_deprecated) {
+	// 			cs_built_in_ctors_content.append("#pragma warning disable CS0618\n");
+	// 		}
+
+	// 		cs_built_in_ctors_content.append(INDENT2 BINDINGS_CLASS_CONSTRUCTOR_DICTIONARY ".Add(\"");
+	// 		cs_built_in_ctors_content.append(itype.name);
+	// 		cs_built_in_ctors_content.append("\", " CS_PARAM_INSTANCE " => new ");
+	// 		cs_built_in_ctors_content.append(itype.proxy_name);
+	// 		if (itype.is_singleton && !itype.is_compat_singleton) {
+	// 			cs_built_in_ctors_content.append("Instance");
+	// 		}
+	// 		cs_built_in_ctors_content.append("(" CS_PARAM_INSTANCE "));\n");
+
+	// 		if (itype.is_deprecated) {
+	// 			cs_built_in_ctors_content.append("#pragma warning restore CS0618\n");
+	// 		}
+	// 	}
+
+	// 	cs_built_in_ctors_content.append(INDENT1 CLOSE_BLOCK);
+
+	// 	cs_built_in_ctors_content.append(CLOSE_BLOCK);
+
+	// 	String constructors_file = Path::join(base_gen_dir, BINDINGS_CLASS_CONSTRUCTOR ".cs");
+	// 	Error err = _save_file(constructors_file, cs_built_in_ctors_content);
+
+	// 	if (err != OK) {
+	// 		return err;
+	// 	}
+
+	// 	compile_items.push_back(constructors_file);
+	// }
+
+	// Generate native calls
+
+	// StringBuilder cs_icalls_content;
+
+	// cs_icalls_content.append("namespace " BINDINGS_NAMESPACE ";\n\n");
+	// cs_icalls_content.append("using System;\n"
+	// 						 "using System.Diagnostics.CodeAnalysis;\n"
+	// 						 "using System.Runtime.InteropServices;\n"
+	// 						 "using Godot.NativeInterop;\n"
+	// 						 "\n");
+	// cs_icalls_content.append("[SuppressMessage(\"ReSharper\", \"InconsistentNaming\")]\n");
+	// cs_icalls_content.append("[SuppressMessage(\"ReSharper\", \"RedundantUnsafeContext\")]\n");
+	// cs_icalls_content.append("[SuppressMessage(\"ReSharper\", \"RedundantNameQualifier\")]\n");
+	// cs_icalls_content.append("[System.Runtime.CompilerServices.SkipLocalsInit]\n");
+	// cs_icalls_content.append("internal static class " BINDINGS_CLASS_NATIVECALLS_EXTENSION "\n{");
+
+	// cs_icalls_content.append(MEMBER_BEGIN "internal static ulong godot_api_hash = ");
+	// cs_icalls_content.append(String::num_uint64(ClassDB::get_api_hash(ClassDB::API_CORE)) + ";\n");
+
+	// cs_icalls_content.append(MEMBER_BEGIN "private const int VarArgsSpanThreshold = 10;\n");
+
+	// for (const InternalCall &icall : method_icalls) {
+	// 	if (icall.editor_only || !icall.extension_only) {
+	// 		continue;
+	// 	}
+	// 	Error err = _generate_cs_native_calls(icall, cs_icalls_content);
+	// 	if (err != OK) {
+	// 		return err;
+	// 	}
+	// }
+
+	// cs_icalls_content.append(CLOSE_BLOCK);
+
+	// String internal_methods_file = Path::join(base_gen_dir, BINDINGS_CLASS_NATIVECALLS_EXTENSION ".cs");
+
+	// Error err = _save_file(internal_methods_file, cs_icalls_content);
+	// if (err != OK) {
+	// 	return err;
+	// }
+
+	// compile_items.push_back(internal_methods_file);
+
+	// Generate GeneratedIncludes.props
+
+	StringBuilder includes_props_content;
+	includes_props_content.append("<Project>\n"
+								  "  <ItemGroup>\n");
+
+	for (int i = 0; i < compile_items.size(); i++) {
+		String include = Path::relative_to(compile_items[i], p_proj_dir).replace_char('/', '\\');
+		includes_props_content.append("    <Compile Include=\"" + include + "\" />\n");
+	}
+
+	includes_props_content.append("  </ItemGroup>\n"
+								  "</Project>\n");
+
+	String includes_props_file = Path::join(base_gen_dir, "GeneratedIncludes.props");
+
+	Error err = _save_file(includes_props_file, includes_props_content);
+	if (err != OK) {
+		return err;
+	}
+
+	return OK;
+}
+
 Error BindingsGenerator::generate_cs_api(const String &p_output_dir) {
 	ERR_FAIL_COND_V(!initialized, ERR_UNCONFIGURED);
 
@@ -5249,8 +5419,9 @@ void BindingsGenerator::_initialize() {
 }
 
 static String generate_all_glue_option = "--generate-mono-glue";
+static String generate_extension_glue_option = "--generate-mono-extension-glue";
 
-static void handle_cmdline_options(String glue_dir_path) {
+static void handle_cmdline_options(String glue_dir_path, bool extension) {
 	BindingsGenerator bindings_generator;
 	bindings_generator.set_log_print_enabled(true);
 
@@ -5261,8 +5432,15 @@ static void handle_cmdline_options(String glue_dir_path) {
 
 	CRASH_COND(glue_dir_path.is_empty());
 
-	if (bindings_generator.generate_cs_api(glue_dir_path.path_join(API_SOLUTION_NAME)) != OK) {
-		ERR_PRINT(generate_all_glue_option + ": Failed to generate the C# API.");
+	if (extension) {
+		if (bindings_generator.generate_cs_extension_project(glue_dir_path.path_join(EXTENSION_API_SOLUTION_NAME)) != OK) {
+			ERR_PRINT(generate_all_glue_option + ": Failed to generate the C# API.");
+		}
+	}
+	else {
+		if (bindings_generator.generate_cs_api(glue_dir_path.path_join(API_SOLUTION_NAME)) != OK) {
+			ERR_PRINT(generate_all_glue_option + ": Failed to generate the C# API.");
+		}
 	}
 }
 
@@ -5274,12 +5452,14 @@ static void cleanup_and_exit_godot() {
 
 void BindingsGenerator::handle_cmdline_args(const List<String> &p_cmdline_args) {
 	String glue_dir_path;
+	bool extension;
 
 	const List<String>::Element *elem = p_cmdline_args.front();
 
 	while (elem) {
-		if (elem->get() == generate_all_glue_option) {
+		if (elem->get() == generate_all_glue_option || elem->get() == generate_extension_glue_option) {
 			const List<String>::Element *path_elem = elem->next();
+			extension = elem->get() == generate_extension_glue_option;
 
 			if (path_elem) {
 				glue_dir_path = path_elem->get();
@@ -5299,7 +5479,7 @@ void BindingsGenerator::handle_cmdline_args(const List<String> &p_cmdline_args) 
 	if (glue_dir_path.length()) {
 		if (Engine::get_singleton()->is_editor_hint() ||
 				Engine::get_singleton()->is_project_manager_hint()) {
-			handle_cmdline_options(glue_dir_path);
+			handle_cmdline_options(glue_dir_path, extension);
 		} else {
 			// Running from a project folder, which doesn't make sense and crashes.
 			ERR_PRINT(generate_all_glue_option + ": Cannot generate Mono glue while running a game project. Change current directory or enable --editor.");
