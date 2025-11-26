@@ -43,6 +43,7 @@ namespace GodotPlugins.Game
                 ManagedCallbacks.Create(outManagedCallbacks);
 
                 ScriptManagerBridge.LookupScriptsInAssembly(typeof(global::GodotPlugins.Game.Main).Assembly);
+                GodotSharpExtension.TryLoadExtensionAssembly();
 
                 return godot_bool.True;
             }

@@ -78,6 +78,7 @@
     <Compile Include="Core\Bridge\CSharpInstanceBridge.cs" />
     <Compile Include="Core\Bridge\GCHandleBridge.cs" />
     <Compile Include="Core\Bridge\AlcReloadCfg.cs" />
+    <Compile Include="Core\Bridge\GodotSharpExtension.cs" />
     <Compile Include="Core\Bridge\ManagedCallbacks.cs" />
     <Compile Include="Core\Bridge\PropertyInfo.cs" />
     <Compile Include="Core\Bridge\ScriptManagerBridge.cs" />

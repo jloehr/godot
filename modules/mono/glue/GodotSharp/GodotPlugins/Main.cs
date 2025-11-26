@@ -152,6 +152,7 @@ namespace GodotPlugins
                 *outLoadedAssemblyPath = Marshaling.ConvertStringToNative(loadedAssemblyPath);
 
                 ScriptManagerBridge.LookupScriptsInAssembly(projectAssembly);
+                GodotSharpExtension.TryLoadExtensionAssembly();
 
                 return godot_bool.True;
             }
@@ -220,6 +221,7 @@ namespace GodotPlugins
         {
             try
             {
+                GodotSharpExtension.UnloadExtensionAssembly();
                 return UnloadPlugin(ref _projectLoadContext).ToGodotBool();
             }
             catch (Exception e)
