@@ -32,7 +32,7 @@ namespace Godot.Bridge
 
         public static void  UnloadExtensionAssembly()
         {
-            Constructors.ExtensionMethodConstructors.Clear();
+            Constructors.ExtensionMethodConstructors?.Clear();
         }
     }
 }
