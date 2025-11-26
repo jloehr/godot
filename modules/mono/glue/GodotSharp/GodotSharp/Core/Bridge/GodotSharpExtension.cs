@@ -11,20 +11,33 @@ namespace Godot.Bridge
     {
         public static void TryLoadExtensionAssembly()
         {
-            var populateConstructorMethod =
-                AppDomain.CurrentDomain
-                    .GetAssemblies()
-                    .First(x => x.GetName().Name == "GodotSharpExtension")?
+            GD.Print("TryLoadExtensionAssembly");
+
+            Assembly assembly = null;
+            try
+            {
+                assembly = Assembly.Load("GodotSharpExtension");
+            }
+            catch(Exception ex)
+            {
+                // Expected if the project doesn't have any generated extension dll.
+                GD.Print("TryLoadExtensionAssembly - Unable to load assembly");
+                GD.Print(ex);
+                return;
+            }
+
+            var populateConstructorMethod = assembly
                     .GetType("Godot.ExtensionMethodConstructors")?
                     .GetMethod("AddExtensionConstructors",
                         BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
 
-            // if (populateConstructorMethod == null)
-            // {
-            //     throw new MissingMethodException("Godot.ExtensionMethodConstructors",
-            //         "AddExtensionConstructors");
-            // }
+            if (populateConstructorMethod == null)
+            {
+                throw new MissingMethodException("Godot.ExtensionMethodConstructors",
+                    "AddExtensionConstructors");
+            }
 
+            GD.Print("TryLoadExtensionAssembly - Involing populateConstructorMethod");
             populateConstructorMethod?.Invoke(null, null);
 
             // ToDo: ScriptManagerBridge.LookupScriptsInAssembly(projectAssembly);
@@ -32,6 +45,7 @@ namespace Godot.Bridge
 
         public static void  UnloadExtensionAssembly()
         {
+            GD.Print("UnloadExtensionAssembly");
             Constructors.ExtensionMethodConstructors?.Clear();
         }
     }
