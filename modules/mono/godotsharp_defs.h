@@ -35,7 +35,6 @@
 #define API_SOLUTION_NAME "GodotSharp"
 #define CORE_API_ASSEMBLY_NAME "GodotSharp"
 #define EDITOR_API_ASSEMBLY_NAME "GodotSharpEditor"
-#define EXTENSION_API_SOLUTION_NAME "GodotSharpExtension"
 #define EXTENSION_API_ASSEMBLY_NAME "GodotSharpExtension"
 
 #define TOOLS_ASM_NAME "GodotTools"

@@ -19,7 +19,7 @@ namespace Godot.Bridge
             {
                 try
                 {
-                        extensionAssembly = Assembly.Load("GodotSharpExtension");
+                    extensionAssembly = Assembly.Load("GodotSharpExtension");
                 }
                 catch
                 {
@@ -43,7 +43,7 @@ namespace Godot.Bridge
             populateConstructorMethod?.Invoke(null, null);
         }
 
-        public static void  UnloadExtensionAssembly()
+        public static void UnloadExtensionAssembly()
         {
             Constructors.ExtensionMethodConstructors?.Clear();
         }

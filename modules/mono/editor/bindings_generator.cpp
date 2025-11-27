@@ -2193,7 +2193,7 @@ Error BindingsGenerator::generate_cs_extension_project(const String &p_proj_dir)
 		compile_items.push_back(constructors_file);
 	}
 
-	// Generate native externsion calls
+	// Generate native extension calls
 
 	StringBuilder cs_icalls_content;
 
@@ -5416,7 +5416,7 @@ void BindingsGenerator::_initialize() {
 static String generate_all_glue_option = "--generate-mono-glue";
 static String generate_extension_glue_option = "--generate-mono-extension-glue";
 
-static void handle_cmdline_options(String glue_dir_path, bool extension) {
+static void handle_cmdline_options(String glue_dir_path, bool generate_extension) {
 	BindingsGenerator bindings_generator;
 	bindings_generator.set_log_print_enabled(true);
 
@@ -5427,8 +5427,8 @@ static void handle_cmdline_options(String glue_dir_path, bool extension) {
 
 	CRASH_COND(glue_dir_path.is_empty());
 
-	if (extension) {
-		if (bindings_generator.generate_cs_extension_project(glue_dir_path.path_join(EXTENSION_API_SOLUTION_NAME)) != OK) {
+	if (generate_extension) {
+		if (bindings_generator.generate_cs_extension_project(glue_dir_path.path_join(EXTENSION_API_ASSEMBLY_NAME)) != OK) {
 			ERR_PRINT(generate_all_glue_option + ": Failed to generate the C# API.");
 		}
 	}
@@ -5447,14 +5447,14 @@ static void cleanup_and_exit_godot() {
 
 void BindingsGenerator::handle_cmdline_args(const List<String> &p_cmdline_args) {
 	String glue_dir_path;
-	bool extension;
+	bool generate_extension;
 
 	const List<String>::Element *elem = p_cmdline_args.front();
 
 	while (elem) {
 		if (elem->get() == generate_all_glue_option || elem->get() == generate_extension_glue_option) {
 			const List<String>::Element *path_elem = elem->next();
-			extension = elem->get() == generate_extension_glue_option;
+			generate_extension = (elem->get() == generate_extension_glue_option);
 
 			if (path_elem) {
 				glue_dir_path = path_elem->get();
@@ -5474,7 +5474,7 @@ void BindingsGenerator::handle_cmdline_args(const List<String> &p_cmdline_args) 
 	if (glue_dir_path.length()) {
 		if (Engine::get_singleton()->is_editor_hint() ||
 				Engine::get_singleton()->is_project_manager_hint()) {
-			handle_cmdline_options(glue_dir_path, extension);
+			handle_cmdline_options(glue_dir_path, generate_extension);
 		} else {
 			// Running from a project folder, which doesn't make sense and crashes.
 			ERR_PRINT(generate_all_glue_option + ": Cannot generate Mono glue while running a game project. Change current directory or enable --editor.");
