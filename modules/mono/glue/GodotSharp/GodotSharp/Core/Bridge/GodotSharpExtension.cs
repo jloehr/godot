@@ -17,7 +17,7 @@ namespace Godot.Bridge
 
             Assembly assembly = AppDomain.CurrentDomain
                     .GetAssemblies()
-                    .First(x => x.GetName().Name == "GodotSharpExtension");
+                    .FirstOrDefault (x => x.GetName().Name == "GodotSharpExtension");
 
             try
             {
