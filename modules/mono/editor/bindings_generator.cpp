@@ -2157,7 +2157,7 @@ Error BindingsGenerator::generate_cs_extension_project(const String &p_proj_dir)
 		for (const KeyValue<StringName, TypeInterface> &E : obj_types) {
 			const TypeInterface &itype = E.value;
 
-			if (itype.api_type != ClassDB::API_EXTENSION) {
+			if (itype.api_type != ClassDB::API_EXTENSION || itype.is_singleton_instance) {
 				continue;
 			}
 
