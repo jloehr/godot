@@ -2183,7 +2183,7 @@ Error BindingsGenerator::generate_cs_extension_project(const String &p_proj_dir)
 
 		cs_built_in_ctors_content.append(CLOSE_BLOCK);
 
-		String constructors_file = Path::join(base_gen_dir, BINDINGS_CLASS_CONSTRUCTOR_EDITOR ".cs");
+		String constructors_file = Path::join(base_gen_dir, BINDINGS_CLASS_CONSTRUCTOR_EXTENSION ".cs");
 		Error err = _save_file(constructors_file, cs_built_in_ctors_content);
 
 		if (err != OK) {
