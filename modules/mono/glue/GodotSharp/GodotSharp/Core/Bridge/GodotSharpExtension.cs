@@ -12,11 +12,24 @@ namespace Godot.Bridge
         public static void TryLoadExtensionAssembly()
         {
             GD.Print("TryLoadExtensionAssembly");
+            GD.Print(System.Environment.CurrentDirectory);
+            GD.Print(string.Join(System.Environment.NewLine, AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.FullName)));
 
-            Assembly assembly = null;
+            Assembly assembly = AppDomain.CurrentDomain
+                    .GetAssemblies()
+                    .First(x => x.GetName().Name == "GodotSharpExtension");
+
             try
             {
-                assembly = Assembly.Load("GodotSharpExtension");
+                if (assembly == null)
+                {
+                    GD.Print("Assembly.Load");
+                    assembly = Assembly.Load("GodotSharpExtension");
+                }
+                else
+                {
+                    GD.Print("Assembly already loaded");
+                }
             }
             catch(Exception ex)
             {
