@@ -4,43 +4,33 @@ using System;
 using System.Linq;
 using System.Reflection;
 
-
 namespace Godot.Bridge
 {
     public static class GodotSharpExtension
     {
         public static void TryLoadExtensionAssembly()
         {
-            GD.Print("TryLoadExtensionAssembly");
-            GD.Print(System.Environment.CurrentDirectory);
-            GD.Print(string.Join(System.Environment.NewLine, AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.FullName)));
-
-            Assembly assembly = AppDomain.CurrentDomain
+            var extensionAssembly =
+                AppDomain.CurrentDomain
                     .GetAssemblies()
                     .FirstOrDefault (x => x.GetName().Name == "GodotSharpExtension");
 
-            try
+            if (extensionAssembly == null)
             {
-                if (assembly == null)
+                try
                 {
-                    GD.Print("Assembly.Load");
-                    assembly = Assembly.Load("GodotSharpExtension");
+                        extensionAssembly = Assembly.Load("GodotSharpExtension");
                 }
-                else
+                catch
                 {
-                    GD.Print("Assembly already loaded");
+                    // Expected if the project doesn't have any generated extension dll.
+                    return;
                 }
-            }
-            catch(Exception ex)
-            {
-                // Expected if the project doesn't have any generated extension dll.
-                GD.Print("TryLoadExtensionAssembly - Unable to load assembly");
-                GD.Print(ex);
-                return;
             }
 
-            var populateConstructorMethod = assembly
-                    .GetType("Godot.ExtensionConstructors")?
+            var populateConstructorMethod =
+                extensionAssembly
+                    .GetType("Godot.ExtensionConstructors")
                     .GetMethod("AddExtensionConstructors",
                         BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
 
@@ -50,17 +40,12 @@ namespace Godot.Bridge
                     "AddExtensionConstructors");
             }
 
-            GD.Print("TryLoadExtensionAssembly - Involing populateConstructorMethod");
             populateConstructorMethod?.Invoke(null, null);
-
-            // ToDo: ScriptManagerBridge.LookupScriptsInAssembly(projectAssembly);
         }
 
         public static void  UnloadExtensionAssembly()
         {
-            GD.Print("UnloadExtensionAssembly");
             Constructors.ExtensionMethodConstructors?.Clear();
         }
     }
 }
-
