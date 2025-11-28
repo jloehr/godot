@@ -43,8 +43,8 @@
 #include "core/io/dir_access.h"
 #include "core/io/file_access.h"
 #include "core/os/os.h"
-#include "main/main.h"
 #include "editor/file_system/editor_file_system.h"
+#include "main/main.h"
 
 StringBuilder &operator<<(StringBuilder &r_sb, const String &p_string) {
 	r_sb.append(p_string);
