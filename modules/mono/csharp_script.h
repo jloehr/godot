@@ -414,6 +414,7 @@ class CSharpLanguage : public ScriptLanguage {
 	Mutex script_gchandle_release_mutex;
 	Mutex language_bind_mutex;
 
+	bool extension_types_allowed;
 	RBMap<Object *, CSharpScriptBinding> script_bindings;
 
 #ifdef DEBUG_ENABLED
@@ -577,6 +578,7 @@ public:
 	bool overrides_external_editor() override;
 #endif
 
+	void set_extension_types_allowed(bool allowed);
 	RBMap<Object *, CSharpScriptBinding>::Element *insert_script_binding(Object *p_object, const CSharpScriptBinding &p_script_binding);
 	bool setup_csharp_script_binding(CSharpScriptBinding &r_script_binding, Object *p_object);
 

@@ -1181,6 +1181,10 @@ CSharpLanguage::~CSharpLanguage() {
 	singleton = nullptr;
 }
 
+void CSharpLanguage::set_extension_types_allowed(bool allowed) {
+	extension_types_allowed = allowed;
+}
+
 bool CSharpLanguage::setup_csharp_script_binding(CSharpScriptBinding &r_script_binding, Object *p_object) {
 #ifdef DEBUG_ENABLED
 	// I don't trust you
@@ -1194,8 +1198,10 @@ bool CSharpLanguage::setup_csharp_script_binding(CSharpScriptBinding &r_script_b
 
 	const ClassDB::ClassInfo *classinfo = ClassDB::classes.getptr(type_name);
 
-	// ToDo: Add back "classinfo->gdextension" if no extension dll is loaded
-	while (classinfo && (!classinfo->exposed || ignored_types.has(classinfo->name))) {
+	// Some types may not be exposed to C# yet. In that case, this is a workaround to expose them through base classes that
+	// are registered from the engine. The GDExtension wrapper assembly for example is optional and may not be loaded by the
+	// project assembly.
+	while (classinfo && (!classinfo->exposed || ignored_types.has(classinfo->name) || (!extension_types_allowed && classinfo->gdextension))) {
 		classinfo = classinfo->inherits_ptr;
 	}
 

@@ -87,6 +87,8 @@ namespace Godot.NativeInterop
         internal static partial void godotsharp_internal_tie_managed_to_unmanaged_with_pre_setup(
             IntPtr gcHandleIntPtr, IntPtr unmanaged);
 
+        internal static partial void godotsharp_internal_set_extension_assembly_loaded(godot_bool loaded);
+
         internal static partial IntPtr godotsharp_internal_unmanaged_get_script_instance_managed(IntPtr p_unmanaged,
             out godot_bool r_has_cs_script_instance);
 

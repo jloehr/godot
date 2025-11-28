@@ -239,6 +239,10 @@ GCHandleIntPtr godotsharp_internal_unmanaged_get_script_instance_managed(Object 
 	return { nullptr };
 }
 
+void godotsharp_internal_set_extension_assembly_loaded(bool loaded) {
+	CSharpLanguage::get_singleton()->set_extension_types_allowed(loaded);
+}
+
 GCHandleIntPtr godotsharp_internal_unmanaged_get_instance_binding_managed(Object *p_unmanaged) {
 #ifdef DEBUG_ENABLED
 	CRASH_COND(!p_unmanaged);
@@ -1636,6 +1640,7 @@ static const void *unmanaged_callbacks[]{
 	(void *)godotsharp_internal_tie_native_managed_to_unmanaged,
 	(void *)godotsharp_internal_tie_user_managed_to_unmanaged,
 	(void *)godotsharp_internal_tie_managed_to_unmanaged_with_pre_setup,
+	(void *)godotsharp_internal_set_extension_assembly_loaded,
 	(void *)godotsharp_internal_unmanaged_get_script_instance_managed,
 	(void *)godotsharp_internal_unmanaged_get_instance_binding_managed,
 	(void *)godotsharp_internal_unmanaged_instance_binding_create_managed,

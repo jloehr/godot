@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using Godot.NativeInterop;
 
 namespace Godot.Bridge
 {
@@ -24,6 +25,7 @@ namespace Godot.Bridge
                 catch
                 {
                     // Expected if the project doesn't have any generated extension dll.
+                    NativeFuncs.godotsharp_internal_set_extension_assembly_loaded(godot_bool.False);
                     return;
                 }
             }
@@ -41,11 +43,13 @@ namespace Godot.Bridge
             }
 
             populateConstructorMethod?.Invoke(null, null);
+            NativeFuncs.godotsharp_internal_set_extension_assembly_loaded(godot_bool.True);
         }
 
         public static void UnloadExtensionAssembly()
         {
             Constructors.ExtensionMethodConstructors?.Clear();
+            NativeFuncs.godotsharp_internal_set_extension_assembly_loaded(godot_bool.False);
         }
     }
 }
