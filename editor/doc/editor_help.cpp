@@ -3109,7 +3109,7 @@ void EditorHelp::load_script_doc_cache() {
 		return;
 	}
 
-	if (EditorNode::is_cmdline_mode()) {
+	if (!EditorNode::get_singleton() || EditorNode::is_cmdline_mode()) {
 		return;
 	}
 
