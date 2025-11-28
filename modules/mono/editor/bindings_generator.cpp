@@ -2148,7 +2148,7 @@ Error BindingsGenerator::generate_cs_extension_project(const String &p_proj_dir)
 	{
 		StringBuilder cs_built_in_ctors_content;
 
-		cs_built_in_ctors_content.append("namespace " BINDINGS_NAMESPACE ";\n\n");
+		cs_built_in_ctors_content.append("namespace " BINDINGS_NAMESPACE_EXTENSION ";\n\n");
 		cs_built_in_ctors_content.append("internal static class " BINDINGS_CLASS_CONSTRUCTOR_EXTENSION "\n{");
 
 		cs_built_in_ctors_content.append(MEMBER_BEGIN "private static void AddExtensionConstructors()\n");
@@ -2198,7 +2198,7 @@ Error BindingsGenerator::generate_cs_extension_project(const String &p_proj_dir)
 
 	StringBuilder cs_icalls_content;
 
-	cs_icalls_content.append("namespace " BINDINGS_NAMESPACE ";\n\n");
+	cs_icalls_content.append("namespace " BINDINGS_NAMESPACE_EXTENSION ";\n\n");
 	cs_icalls_content.append("using System;\n"
 							 "using System.Diagnostics.CodeAnalysis;\n"
 							 "using System.Runtime.InteropServices;\n"
@@ -2311,6 +2311,7 @@ Error BindingsGenerator::_generate_cs_type(const TypeInterface &itype, const Str
 	CRASH_COND(!itype.is_object_type);
 
 	bool is_derived_type = itype.base_name != StringName();
+	bool is_extension_type = itype.api_type == ClassDB::API_EXTENSION;
 
 	if (!is_derived_type) {
 		// Some GodotObject assertions
@@ -2325,7 +2326,7 @@ Error BindingsGenerator::_generate_cs_type(const TypeInterface &itype, const Str
 
 	StringBuilder output;
 
-	output.append("namespace " BINDINGS_NAMESPACE ";\n\n");
+	output << "namespace " << (is_extension_type ? BINDINGS_NAMESPACE_EXTENSION : BINDINGS_NAMESPACE) << ";\n\n";
 
 	output.append("using System;\n"); // IntPtr
 	output.append("using System.ComponentModel;\n"); // EditorBrowsable
