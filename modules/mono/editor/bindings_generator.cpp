@@ -44,6 +44,7 @@
 #include "core/io/file_access.h"
 #include "core/os/os.h"
 #include "main/main.h"
+#include "editor/file_system/editor_file_system.h"
 
 StringBuilder &operator<<(StringBuilder &r_sb, const String &p_string) {
 	r_sb.append(p_string);
@@ -5439,6 +5440,11 @@ static void handle_cmdline_options(String glue_dir_path, bool generate_extension
 	}
 }
 
+static void defer_glue_code_generation(String glue_dir_path, bool generate_extension) {
+	// Wait until the initial import has finished so the GDExtensions have been imported and the types are available.
+	EditorFileSystem::get_singleton()->connect("filesystem_changed", callable_mp_static(&handle_cmdline_options).bind(glue_dir_path, generate_extension));
+}
+
 static void cleanup_and_exit_godot() {
 	// Exit once done.
 	Main::cleanup(true);
@@ -5447,7 +5453,7 @@ static void cleanup_and_exit_godot() {
 
 void BindingsGenerator::handle_cmdline_args(const List<String> &p_cmdline_args) {
 	String glue_dir_path;
-	bool generate_extension;
+	bool generate_extension = false;
 
 	const List<String>::Element *elem = p_cmdline_args.front();
 
@@ -5471,7 +5477,7 @@ void BindingsGenerator::handle_cmdline_args(const List<String> &p_cmdline_args) 
 		elem = elem->next();
 	}
 
-	if (glue_dir_path.length()) {
+	if (glue_dir_path.length() && !generate_extension) {
 		if (Engine::get_singleton()->is_editor_hint() ||
 				Engine::get_singleton()->is_project_manager_hint()) {
 			handle_cmdline_options(glue_dir_path, generate_extension);
@@ -5481,6 +5487,15 @@ void BindingsGenerator::handle_cmdline_args(const List<String> &p_cmdline_args) 
 		}
 		// Exit once done.
 		cleanup_and_exit_godot();
+	}
+	else if (glue_dir_path.length() && generate_extension) {
+		if (Engine::get_singleton()->is_editor_hint()) {
+			// We have to defer this call, as "EditorFileSystem" is not initialized yet at this point.
+			callable_mp_static(&defer_glue_code_generation).call_deferred(glue_dir_path, generate_extension);
+		} else {
+			// Extension generation needs and editor project.
+			ERR_PRINT(generate_extension_glue_option + ": Cannot generate extension glue while running a game project or project manager. Change current directory or enable --editor.");
+		}
 	}
 }
 
