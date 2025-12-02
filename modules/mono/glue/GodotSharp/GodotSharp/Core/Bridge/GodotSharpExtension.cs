@@ -22,9 +22,10 @@ namespace Godot.Bridge
                 {
                     extensionAssembly = Assembly.Load("GodotSharpExtension");
                 }
-                catch
+                catch (FileNotFoundException)
                 {
-                    // Expected if the project doesn't have any generated extension dll.
+                    // "FileNotFoundException" is expected if the project doesn't have any generated extension dll.
+                    // Any other exception could indicate an issue with the assembly and is therefore unhandled.
                     NativeFuncs.godotsharp_internal_set_extension_assembly_loaded(godot_bool.False);
                     return;
                 }
