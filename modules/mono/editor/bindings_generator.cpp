@@ -5497,6 +5497,7 @@ void BindingsGenerator::handle_cmdline_args(const List<String> &p_cmdline_args) 
 			// Extension generation needs and editor project.
 			ERR_PRINT(generate_extension_glue_option + ": Cannot generate extension glue while running a game project or project manager. Change current directory or enable --editor.");
 		}
+		// Extension code generation is an async operation. We expect this to be run with either `--import or `--quit`.
 	}
 }
 
