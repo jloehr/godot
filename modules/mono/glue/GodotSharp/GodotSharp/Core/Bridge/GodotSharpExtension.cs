@@ -32,7 +32,7 @@ namespace Godot.Bridge
 
             var populateConstructorMethod =
                 extensionAssembly
-                    .GetType("Godot.Extension.ExtensionConstructors")
+                    .GetType("Godot.Extension.ExtensionConstructors")?
                     .GetMethod("AddExtensionConstructors",
                         BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
 
